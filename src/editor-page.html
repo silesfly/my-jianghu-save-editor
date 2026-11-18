@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>몽강호 세이브 에디터 v1.0</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #f6f0e3;
+    --paper-2: #efe6d4;
+    --paper-3: #e5d8c0;
+    --ink: #211b15;
+    --ink-2: #453a30;
+    --ink-3: #6e6052;
+    --line: #cdbea5;
+    --accent: #a8331f;
+    --accent-soft: rgba(168, 51, 31, 0.14);
+    --gold: #b0803a;
+    --jade: #2f6b53;
+    --err: #b3261e;
+    --field: #fbf7ee;
+    --field-line: #d9cab1;
+  }
+
+  :root:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  :root:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --paper: #f6f0e3;
+    --paper-2: #efe6d4;
+    --paper-3: #e5d8c0;
+    --ink: #211b15;
+    --ink-2: #453a30;
+    --ink-3: #6e6052;
+    --line: #cdbea5;
+    --accent: #a8331f;
+    --accent-soft: rgba(168, 51, 31, 0.14);
+    --gold: #b0803a;
+    --jade: #2f6b53;
+    --err: #b3261e;
+    --field: #fbf7ee;
+    --field-line: #d9cab1;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #16130f;
+    --paper-2: #1e1a14;
+    --paper-3: #272119;
+    --ink: #f1e8d8;
+    --ink-2: #d8cbb7;
+    --ink-3: #ab9d88;
+    --line: #3d352a;
+    --accent: #e0715a;
+    --accent-soft: rgba(224, 113, 90, 0.18);
+    --gold: #d5a55b;
+    --jade: #74b79a;
+    --err: #ef7a72;
+    --field: #221d16;
+    --field-line: #443a2c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #16130f;
+      --paper-2: #1e1a14;
+      --paper-3: #272119;
+      --ink: #f1e8d8;
+      --ink-2: #d8cbb7;
+      --ink-3: #ab9d88;
+      --line: #3d352a;
+      --accent: #e0715a;
+      --accent-soft: rgba(224, 113, 90, 0.18);
+      --gold: #d5a55b;
+      --jade: #74b79a;
+      --err: #ef7a72;
+      --field: #221d16;
+      --field-line: #443a2c;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: "맑은 고딕", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14.5px;
+    line-height: 1.55;
+    padding-block-end: 56px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .app-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 30;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--paper-2);
+    border-block-end: 1px solid var(--line);
+  }
+
+  .app-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-inline-end: auto;
+  }
+
+  .app-title h1 {
+    font-size: 18px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .app-title h1 .seal {
+    display: inline-block;
+    padding: 1px 7px;
+    margin-inline-end: 6px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    background-color: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    vertical-align: middle;
+  }
+
+  .app-subtitle {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .header-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background-color: var(--paper-3);
+    color: var(--ink-2);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .badge.warn {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .badge.warn::before {
+    content: "";
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background-color: var(--accent);
+  }
+
+  .action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--paper);
+    border-block-end: 1px solid var(--line);
+  }
+
+  .btn {
+    font: inherit;
+    font-size: 13.5px;
+    padding: 7px 13px;
+    border: 1px solid var(--field-line);
+    border-radius: 8px;
+    background-color: var(--field);
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.14s ease, background-color 0.14s ease;
+  }
+
+  .btn.sm {
+    padding: 4px 9px;
+    font-size: 12.5px;
+  }
+
+  .btn.danger {
+    border-color: var(--err);
+    color: var(--err);
+  }
+
+  .btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    background-color: var(--paper-2);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--jade);
+    outline-offset: 2px;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn.primary {
+    border-color: var(--accent);
+    background-color: var(--accent);
+    color: #fdf6ec;
+  }
+
+  .btn.primary:hover:not(:disabled) {
+    background-color: var(--accent);
+    filter: brightness(1.08);
+  }
+
+  .slot-wrap {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px dashed var(--gold);
+    border-radius: 10px;
+    background-color: var(--paper-2);
+  }
+
+  select,
+  input[type="text"],
+  input[type="search"],
+  input[type="number"] {
+    font: inherit;
+    font-size: 13.5px;
+    padding: 6px 9px;
+    border: 1px solid var(--field-line);
+    border-radius: 8px;
+    background-color: var(--field);
+    color: var(--ink);
+    min-inline-size: 0;
+  }
+
+  select:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--jade);
+    outline-offset: 1px;
+  }
+
+  .drop-zone {
+    margin: 14px 16px 6px;
+    padding: 18px;
+    border: 2px dashed var(--line);
+    border-radius: 14px;
+    background-color: var(--paper-2);
+    color: var(--ink-2);
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .drop-zone.is-over {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .tablist {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 10px 16px 0;
+    border-block-end: 1px solid var(--line);
+    background-color: var(--paper-2);
+    scrollbar-width: thin;
+  }
+
+  [role="tab"] {
+    flex: none;
+    position: relative;
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-block-end: none;
+    border-start-start-radius: 10px;
+    border-start-end-radius: 10px;
+    background-color: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  [role="tab"]:hover {
+    background-color: var(--paper-3);
+  }
+
+  [role="tab"]:focus-visible {
+    outline: 2px solid var(--jade);
+    outline-offset: -2px;
+  }
+
+  [role="tab"][aria-selected="true"] {
+    background-color: var(--paper);
+    border-color: var(--line);
+    color: var(--accent);
+  }
+
+  [role="tab"][aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: -1px;
+    border-block-end: 3px solid var(--accent);
+    pointer-events: none;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  .panel-inner {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin: 14px 16px;
+    background-color: var(--paper-2);
+  }
+
+  section[role="tabpanel"]:focus-visible {
+    outline: 2px solid var(--jade);
+    outline-offset: -2px;
+  }
+
+  .section-block {
+    margin-block-end: 18px;
+  }
+
+  .section-block:last-child {
+    margin-block-end: 0;
+  }
+
+  .section-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: baseline;
+    margin-block-end: 10px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .section-title .hint {
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: var(--field);
+  }
+
+  .stat-card .k {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .stat-card .v {
+    margin-block-start: 3px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-all;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+
+  .field-card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: var(--field);
+  }
+
+  .field-card label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .field-card input {
+    inline-size: 100%;
+  }
+
+  .placeholder {
+    padding: 14px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    background-color: var(--paper);
+    color: var(--ink-3);
+    font-size: 13px;
+  }
+
+  .toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-block-end: 12px;
+  }
+
+  .toolbar-row label {
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+
+  .count-label {
+    font-size: 12px;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .table-wrapper {
+    overflow: auto;
+    max-inline-size: 100%;
+    max-block-size: 62vh;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: var(--field);
+  }
+
+  table {
+    inline-size: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+
+  thead {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background-color: var(--paper-3);
+  }
+
+  th,
+  td {
+    padding: 8px 10px;
+    border-block-end: 1px solid var(--line);
+    text-align: start;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: 600;
+    color: var(--ink-2);
+    background-color: var(--paper-3);
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: var(--paper-2);
+  }
+
+  tbody tr:hover {
+    background-color: var(--accent-soft);
+  }
+
+  td input,
+  td select {
+    max-inline-size: 9.5rem;
+  }
+
+  .empty-row td {
+    color: var(--ink-3);
+    text-align: center;
+    padding: 18px 10px;
+  }
+
+  .raw-record {
+    margin-block-end: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background-color: var(--paper);
+  }
+
+  .raw-words {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 6px;
+    margin-block-start: 8px;
+  }
+
+  .raw-word {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  .raw-word span {
+    color: var(--ink-3);
+    min-inline-size: 38px;
+  }
+
+  .raw-word input {
+    inline-size: 100%;
+    padding: 4px 6px;
+    font-size: 12.5px;
+  }
+
+  #raw-records-box {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: var(--field);
+    padding: 10px;
+    overflow: auto;
+    max-inline-size: 100%;
+  }
+
+  .toast-host {
+    position: fixed;
+    inset-block-end: 16px;
+    inset-inline-end: 16px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+
+  .toast {
+    padding: 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background-color: var(--paper-3);
+    color: var(--ink);
+    font-size: 13px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+    pointer-events: auto;
+  }
+
+  .toast.ok {
+    border-color: var(--jade);
+  }
+
+  .toast.error {
+    border-color: var(--err);
+    color: var(--err);
+  }
+
+  dialog[open] {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background-color: var(--paper);
+    color: var(--ink);
+    max-inline-size: min(880px, calc(100vw - 32px));
+    inline-size: 100%;
+  }
+
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: rgba(0, 0, 0, 0.48);
+  }
+
+  .dialog-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: baseline;
+    margin-block-end: 12px;
+  }
+
+  .dialog-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-block-end: 12px;
+  }
+
+  .dialog-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-block-start: 12px;
+  }
+
+  .catalog-results {
+    max-block-size: 46vh;
+  }
+
+  @media (max-width: 720px) {
+    .panel-inner {
+      margin: 10px;
+      padding: 12px;
+    }
+
+    .drop-zone {
+      margin: 10px;
+    }
+
+    th,
+    td {
+      padding: 6px 8px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-title">
+    <h1><span class="seal">몽</span>몽강호 세이브 에디터 v1.0</h1>
+    <span class="app-subtitle">Save.sav 무손실 바이너리 편집기 · 순수 한국어 도감 내장</span>
+  </div>
+  <div class="header-tools">
+    <span id="status-badge" class="badge">대기 중</span>
+    <span id="dirty-badge" class="badge warn hidden">변경됨</span>
+    <button type="button" id="btn-theme" class="btn">테마 전환</button>
+  </div>
+</header>
+
+<div class="action-bar" role="group" aria-label="파일 작업">
+  <input type="file" id="file-input" accept=".sav,application/octet-stream" hidden>
+  <button type="button" id="btn-open-file" class="btn">파일 열기</button>
+  <button type="button" id="btn-demo" class="btn">예시 세이브</button>
+  <span id="slot-wrap" class="slot-wrap hidden">
+    <select id="slot-select" aria-label="저장 슬롯 선택"></select>
+    <button type="button" id="btn-refresh-slots" class="btn">새로고침</button>
+    <button type="button" id="btn-save-host" class="btn primary">슬롯 저장</button>
+  </span>
+  <button type="button" id="btn-reset" class="btn" disabled>원본 복원</button>
+  <button type="button" id="btn-download" class="btn primary" disabled>파일 내려받기</button>
+</div>
+
+<div id="drop-zone" class="drop-zone">
+  Save.sav 파일을 이곳에 끌어다 놓거나 [파일 열기] / [예시 세이브]를 눌러 시작하세요.
+</div>
+
+<div id="main-tablist" role="tablist" aria-label="편집기 주요 기능" class="tablist">
+  <button type="button" role="tab" id="tab-btn-overview" data-tab="overview" aria-selected="true">개요·재화</button>
+  <button type="button" role="tab" id="tab-btn-role" data-tab="role" aria-selected="false">주인공·능력치</button>
+  <button type="button" role="tab" id="tab-btn-items" data-tab="items" aria-selected="false">보유 물품</button>
+  <button type="button" role="tab" id="tab-btn-martials" data-tab="martials" aria-selected="false">무학·천부</button>
+  <button type="button" role="tab" id="tab-btn-npcs" data-tab="npcs" aria-selected="false">인물 호감도</button>
+  <button type="button" role="tab" id="tab-btn-raw" data-tab="raw" aria-selected="false">원시 테이블</button>
+</div>
+
+<main>
+  <section id="panel-overview" role="tabpanel" aria-labelledby="tab-btn-overview" tabindex="0">
+    <div class="panel-inner">
+      <div class="section-block">
+        <h2 class="section-title">빠른 설정 <span class="hint">자주 쓰는 구성을 즉시 적용합니다</span></h2>
+        <div id="preset-bar" class="toolbar-row"></div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">세이브 요약</h2>
+        <div id="summary-cards" class="card-grid">
+          <div class="placeholder">세이브를 열면 요약 정보가 표시됩니다.</div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">머리말 정보</h2>
+        <div id="header-fields-box" class="field-grid"></div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">시나리오 진행 정보</h2>
+        <div id="script-fields-box" class="field-grid"></div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">계정 공용 재화</h2>
+        <div id="currency-fields-box" class="field-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-role" role="tabpanel" aria-labelledby="tab-btn-role" tabindex="0" hidden>
+    <div class="panel-inner">
+      <div class="section-block">
+        <div class="toolbar-row">
+          <label for="role-select">인물 선택</label>
+          <select id="role-select" aria-label="인물 선택"></select>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">기본 정보</h2>
+        <div id="role-meta-box" class="field-grid"></div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">전투·자질·무학 정통 능력치</h2>
+        <div id="role-attrs-box" class="field-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-items" role="tabpanel" aria-labelledby="tab-btn-items" tabindex="0" hidden>
+    <div class="panel-inner">
+      <div class="toolbar-row">
+        <label for="item-search">물품 검색</label>
+        <input type="search" id="item-search" placeholder="이름 또는 번호 검색" autocomplete="off">
+        <button type="button" id="btn-add-item" class="btn primary">물품 추가</button>
+        <span id="items-count" class="count-label">0개</span>
+      </div>
+
+      <div tabindex="0" role="region" aria-label="보유 물품 목록" class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">번호</th>
+              <th scope="col">물품 이름</th>
+              <th scope="col">수량</th>
+              <th scope="col">분류</th>
+              <th scope="col">관리</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody">
+            <tr class="empty-row"><td colspan="5">세이브를 열면 보유 물품이 표시됩니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-martials" role="tabpanel" aria-labelledby="tab-btn-martials" tabindex="0" hidden>
+    <div class="panel-inner">
+      <div class="section-block">
+        <h2 class="section-title">보유 무학</h2>
+        <div class="toolbar-row">
+          <label for="martial-search">무학 검색</label>
+          <input type="search" id="martial-search" placeholder="이름 또는 번호 검색" autocomplete="off">
+          <button type="button" id="btn-add-martial" class="btn primary">무학 추가</button>
+          <span id="martials-count" class="count-label">0개</span>
+        </div>
+
+        <div tabindex="0" role="region" aria-label="보유 무학 목록" class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">번호</th>
+                <th scope="col">무학 이름</th>
+                <th scope="col">경험치</th>
+                <th scope="col">등급</th>
+                <th scope="col">관리</th>
+              </tr>
+            </thead>
+            <tbody id="martials-tbody">
+              <tr class="empty-row"><td colspan="5">세이브를 열면 무학 목록이 표시됩니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">보유 천부</h2>
+        <div class="toolbar-row">
+          <label for="gift-search">천부 검색</label>
+          <input type="search" id="gift-search" placeholder="이름 또는 번호 검색" autocomplete="off">
+          <button type="button" id="btn-add-gift" class="btn primary">천부 추가</button>
+          <span id="gifts-count" class="count-label">0개</span>
+        </div>
+
+        <div tabindex="0" role="region" aria-label="보유 천부 목록" class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">번호</th>
+                <th scope="col">천부 이름</th>
+                <th scope="col">등급</th>
+                <th scope="col">관리</th>
+              </tr>
+            </thead>
+            <tbody id="gifts-tbody">
+              <tr class="empty-row"><td colspan="4">세이브를 열면 천부 목록이 표시됩니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-npcs" role="tabpanel" aria-labelledby="tab-btn-npcs" tabindex="0" hidden>
+    <div class="panel-inner">
+      <div class="toolbar-row">
+        <label for="npc-search">인물 검색</label>
+        <input type="search" id="npc-search" placeholder="이름 또는 번호 검색" autocomplete="off">
+        <label for="npc-bulk-input">일괄 호감도</label>
+        <input type="number" id="npc-bulk-input" value="100" step="1" min="-100" max="100" aria-label="일괄 적용할 호감도">
+        <button type="button" id="btn-npc-bulk" class="btn">일괄 적용</button>
+        <span id="npcs-count" class="count-label">0명</span>
+      </div>
+
+      <div tabindex="0" role="region" aria-label="인물 호감도 목록" class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">번호</th>
+              <th scope="col">인물 이름</th>
+              <th scope="col">호감도</th>
+              <th scope="col">관계</th>
+              <th scope="col">슬롯</th>
+            </tr>
+          </thead>
+          <tbody id="npcs-tbody">
+            <tr class="empty-row"><td colspan="5">세이브를 열면 인물 목록이 표시됩니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-raw" role="tabpanel" aria-labelledby="tab-btn-raw" tabindex="0" hidden>
+    <div class="panel-inner">
+      <div class="toolbar-row">
+        <label for="raw-table-select">테이블 선택</label>
+        <select id="raw-table-select" aria-label="원시 테이블 선택"></select>
+        <button type="button" id="raw-page-prev" class="btn">이전</button>
+        <span id="raw-page-info" class="count-label">1 / 1</span>
+        <button type="button" id="raw-page-next" class="btn">다음</button>
+      </div>
+
+      <div id="raw-records-box">
+        <div class="placeholder">원시 레코드를 보려면 세이브를 여세요.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="catalog-dialog" aria-labelledby="catalog-dialog-title">
+  <div class="dialog-head">
+    <h2 id="catalog-dialog-title">도감 검색 및 추가</h2>
+    <span id="catalog-count-label" class="count-label">0건</span>
+  </div>
+
+  <div class="dialog-controls">
+    <input type="search" id="catalog-search-input" placeholder="이름 또는 번호 검색" autocomplete="off" autofocus aria-label="도감 검색어">
+    <select id="catalog-filter-select" aria-label="도감 분류 선택"></select>
+    <span id="catalog-qty-wrap" class="toolbar-row">
+      <label for="catalog-qty-input">수량·등급</label>
+      <input type="number" id="catalog-qty-input" value="1" min="1" step="1">
+    </span>
+  </div>
+
+  <div tabindex="0" role="region" aria-label="도감 검색 결과" class="table-wrapper catalog-results">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">번호</th>
+          <th scope="col">이름</th>
+          <th scope="col">분류</th>
+          <th scope="col">등급</th>
+          <th scope="col">추가</th>
+        </tr>
+      </thead>
+      <tbody id="catalog-results-body">
+        <tr class="empty-row"><td colspan="5">검색어를 입력해 주세요.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dialog-foot">
+    <form method="dialog">
+      <button value="cancel" type="submit" class="btn">닫기</button>
+    </form>
+  </div>
+</dialog>
+
+<div id="toast-host" class="toast-host" aria-live="polite"></div>
+
+<script src="myjh-codec.js"></script>
+<script src="catalog-data.js"></script>
+<script src="editor-core.js"></script>
+<script src="editor-ui.js"></script>
+</body>
+</html>
