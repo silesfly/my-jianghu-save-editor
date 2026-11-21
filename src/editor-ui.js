@@ -401,12 +401,12 @@
         const sdefs = [
           ['bagExtraCap', '배낭 추가 용량', 0, 99999],
           ['difficulty', '난이도 (1~25)', 1, 25],
-          ['martialLvMaxBonus', '무학 등급 상한 보너스', 0, 99],
+          ['martialLvMaxBonus', '무학 레벨 상한 보너스', 0, 99],
           ['roleLvMaxBonus', '레벨 상한 보너스', 0, 99],
           ['teamMax', '출전 동료 상한 (1~20)', 1, 20],
           ['martialNumMax', '무학 수량 상한', 0, 99],
-          ['forgeExp', '제조 숙련도', 0, 2000000000],
-          ['reforgeExp', '재주조 숙련도', 0, 2000000000]
+          ['forgeExp', '제작 숙련도', 0, 2000000000],
+          ['reforgeExp', '재련 숙련도', 0, 2000000000]
         ];
         sdefs.forEach(([k, label, lo, hi]) => {
           sb.appendChild(makeFieldCard('input-script-' + k, label, m[k], { min: lo, max: hi }, (v) => session.setScriptField(k, num(v))));

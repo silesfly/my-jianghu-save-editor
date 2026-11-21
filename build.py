@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 SRC_HTML = ROOT / "src" / "editor-page.html"
 DIST_DIR = ROOT / "dist"
-DIST_HTML = DIST_DIR / "MyJianghuSaveEditor-v1.0.html"
+DIST_HTML = DIST_DIR / "MyJianghuSaveEditor-v1.1.html"
 
 JS_FILES = [
     "myjh-codec.js",

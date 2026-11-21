@@ -17,7 +17,7 @@ namespace MyJianghuSaveEditor
 {
     internal static class Program
     {
-        internal const string AppTitle = "\ubabd\uac15\ud638 \uc138\uc774\ube0c \uc5d0\ub514\ud130 v1.0";
+        internal const string AppTitle = "\ubabd\uac15\ud638 \uc138\uc774\ube0c \uc5d0\ub514\ud130 v1.1";
         internal const string VirtualHost = "myjh-editor.local";
 
         internal const string HtmlResourceName = "MyJianghuSaveEditor.html";
@@ -30,9 +30,9 @@ namespace MyJianghuSaveEditor
 
         internal static readonly string LocalAppDataRoot =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyJianghuSaveEditor");
-        internal static readonly string RuntimeDir = Path.Combine(LocalAppDataRoot, "runtime-1.0.0");
-        internal static readonly string HtmlDir = Path.Combine(LocalAppDataRoot, "html-1.0.0");
-        internal static readonly string WebView2UserDataDir = Path.Combine(LocalAppDataRoot, "webview2-1.0.0");
+        internal static readonly string RuntimeDir = Path.Combine(LocalAppDataRoot, "runtime-1.1.0");
+        internal static readonly string HtmlDir = Path.Combine(LocalAppDataRoot, "html-1.1.0");
+        internal static readonly string WebView2UserDataDir = Path.Combine(LocalAppDataRoot, "webview2-1.1.0");
         internal static readonly string HtmlPath = Path.Combine(HtmlDir, HtmlResourceName);
 
         [STAThread]

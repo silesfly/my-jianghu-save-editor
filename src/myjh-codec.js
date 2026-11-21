@@ -18,15 +18,15 @@
   const TABLE_NAMES_KO = {
     0: '주인공 시나리오(T00)', 1: '객체 최대 ID(T01)', 2: '해금 정보(T02)',
     3: '업적 달성(T03)', 6: '경맥 정보(T06)', 8: '백보서 기본(T08)',
-    12: '협객행 추첨(T12)', 14: '영수 카드(T14)', 15: '인물 카드(T15)',
-    16: '문파 건축(T16)', 21: '인물 능력치(T21)', 22: '맵 상태(T22)',
+    12: '협객행 추첨(T12)', 14: '영물 카드(T14)', 15: '캐릭터 카드(T15)',
+    16: '문파 건물(T16)', 21: '캐릭터 능력치(T21)', 22: '맵 상태(T22)',
     23: '보유 물품(T23)', 24: '장비 부가속성(T24)', 25: '보유 무학(T25)',
     26: '임무 진행(T26)', 27: '비플레이어 인물(T27)', 28: '인물 호감도(T28)',
-    29: '인물 연화(T29)', 31: '보유 천부(T31)', 32: '동적 보너스 능력치(T32)',
+    29: '캐릭터 일러스트(T29)', 31: '보유 천부(T31)', 32: '동적 보너스 능력치(T32)',
     33: '상점 상태(T33)', 34: '출전 진형(T34)', 35: '도시 정보(T35)',
     36: '미궁 상태(T36)', 40: '문파 정보(T40)', 43: '임무 동적 변수(T43)',
     44: '임무 분기(T44)', 48: '태그 플래그(T48)', 51: '시나리오 경기장(T51)',
-    55: '회차 누적(T55)', 56: '심원 임무(T56)', 57: '외형 정보(T57)',
+    55: '회차 누적(T55)', 56: '소원 임무(T56)', 57: '외형 정보(T57)',
     61: '계정 공용 재화(T61)'
   };
 
@@ -44,25 +44,25 @@
   const DEFAULT_NPC_TARGET = 1000001260;
 
   const COMMON_CURRENCIES = [
-    { key: 2, id: 'silver', label: '은정' },
-    { key: 3, id: 'gold', label: '금정' },
-    { key: 4, id: 'treasurePage', label: '백보서 잔엽' },
+    { key: 2, id: 'silver', label: '은자' },
+    { key: 3, id: 'gold', label: '금자' },
+    { key: 4, id: 'treasurePage', label: '백보서 잔페이지' },
     { key: 38, id: 'refinedIron', label: '정철' },
     { key: 39, id: 'perfectPowder', label: '완벽분' },
     { key: 37, id: 'heavenHammer', label: '천공추' },
-    { key: 73, id: 'tonglingyu', label: '통영옥' },
-    { key: 33, id: 'lowIncomplete', label: '무학 하급 잔문' },
-    { key: 34, id: 'midIncomplete', label: '무학 중급 잔문' },
-    { key: 35, id: 'highIncomplete', label: '무학 상급 잔문' }
+    { key: 73, id: 'tonglingyu', label: '금강옥' },
+    { key: 33, id: 'lowIncomplete', label: '하급 무학 잔문' },
+    { key: 34, id: 'midIncomplete', label: '중급 무학 잔문' },
+    { key: 35, id: 'highIncomplete', label: '상급 무학 잔문' }
   ];
 
   const ATTR_FIELDS = [
-    { index: 0, key: 'maxHp', label: '최대 생명' },
+    { index: 0, key: 'maxHp', label: '최대 생명력' },
     { index: 1, key: 'maxMp', label: '최대 진기' },
     { index: 2, key: 'defence', label: '방어' },
     { index: 11, key: 'martialAtk', label: '무학 공격' },
-    { index: 3, key: 'lidao', label: '역도' },
-    { index: 4, key: 'lingqiao', label: '영교' },
+    { index: 3, key: 'lidao', label: '근력' },
+    { index: 4, key: 'lingqiao', label: '민첩' },
     { index: 5, key: 'neijin', label: '내경' },
     { index: 6, key: 'tizhi', label: '체질' },
     { index: 7, key: 'jingli', label: '정력' },

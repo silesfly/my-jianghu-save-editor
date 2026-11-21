@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""몽강호 세이브 에디터 v1.0 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
+"""몽강호 세이브 에디터 v1.1 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
 
 from __future__ import annotations
 
@@ -388,7 +388,7 @@ class SaveDoc:
 
     def add_martial(self, base_id: int, level: int = 1, role_id: int | None = None) -> int:
         if base_id < 1 or not 1 <= level <= 30:
-            raise ValidationError("무학 번호 또는 등급(1~30)이 올바르지 않습니다.")
+            raise ValidationError("무학 번호 또는 레벨(1~30)이 올바르지 않습니다.")
         rid = role_id if role_id is not None else (self.main_role_id or 8)
         new_id = self._next_object_id(MARTIAL_OBJ_TYPE, T25)
         idx = self.add_record(T25)
@@ -409,7 +409,7 @@ class SaveDoc:
 
     def set_all_martial_levels(self, level: int = 30) -> None:
         if not 1 <= level <= 30:
-            raise ValidationError("무학 등급은 1~30 범위여야 합니다.")
+            raise ValidationError("무학 레벨은 1~30 범위여야 합니다.")
         for _, rec in self.records(T25):
             _put_u32(rec, 0x18, level)
 
@@ -851,7 +851,7 @@ def _find_html_path(explicit_html: str | None = None) -> Path:
         if p.is_file():
             return p
         raise MyjhError(f"지정한 HTML 파일을 찾을 수 없습니다: {p}")
-    rel = Path("dist") / "MyJianghuSaveEditor-v1.0.html"
+    rel = Path("dist") / "MyJianghuSaveEditor-v1.1.html"
     for base in (Path(__file__).resolve().parent, Path.cwd().resolve()):
         c = base / rel
         if c.is_file():
@@ -897,7 +897,7 @@ def create_http_server(port: int = 0, save_dir: str | None = None, html_path: st
     served = _prepare_served_html(html_file.read_bytes(), active_token)
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "MyjhEditor/1.0"
+        server_version = "MyjhEditor/1.1"
         sys_version = ""
 
         def log_message(self, fmt: str, *args: object) -> None:

@@ -53,7 +53,7 @@ test('Language & Hygiene Audit', () => {
     'src/editor-core.js',
     'src/editor-ui.js',
     'src/editor-page.html',
-    'dist/MyJianghuSaveEditor-v1.0.html'
+    'dist/MyJianghuSaveEditor-v1.1.html'
   ]) {
     const text = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     assert.ok(!HANZI_RE.test(text), `${rel}: contains Hanzi`);
@@ -61,7 +61,7 @@ test('Language & Hygiene Audit', () => {
     assert.ok(!text.includes('실험적'), `${rel}: contains forbidden word`);
   }
 
-  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.0.html');
+  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.1.html');
   const distText = fs.readFileSync(distPath, 'utf8');
   const distSize = fs.statSync(distPath).size;
 
@@ -79,6 +79,18 @@ test('Catalog Completeness', () => {
   assert.ok(Catalog.roles && Object.keys(Catalog.roles).length >= 3200);
   assert.strictEqual(Core.getRoleName(1000001260), '전소륙');
   assert.ok(Core.searchCatalog('items', '경험단', '', 20).length > 0);
+  const silver = Codec.COMMON_CURRENCIES.find((c) => c.id === 'silver');
+  const gold = Codec.COMMON_CURRENCIES.find((c) => c.id === 'gold');
+  const tongling = Codec.COMMON_CURRENCIES.find((c) => c.id === 'tonglingyu');
+  const maxHp = Codec.ATTR_FIELDS.find((a) => a.key === 'maxHp');
+  const lidao = Codec.ATTR_FIELDS.find((a) => a.key === 'lidao');
+  const lingqiao = Codec.ATTR_FIELDS.find((a) => a.key === 'lingqiao');
+  assert.strictEqual(silver && silver.label, '은자');
+  assert.strictEqual(gold && gold.label, '금자');
+  assert.strictEqual(tongling && tongling.label, '금강옥');
+  assert.strictEqual(maxHp && maxHp.label, '최대 생명력');
+  assert.strictEqual(lidao && lidao.label, '근력');
+  assert.strictEqual(lingqiao && lingqiao.label, '민첩');
 });
 
 test('Synthetic Demo Save & Validation', () => {

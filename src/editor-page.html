@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>몽강호 세이브 에디터 v1.0</title>
+<title>몽강호 세이브 에디터 v1.1</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -673,7 +673,7 @@
 
 <header class="app-header">
   <div class="app-title">
-    <h1><span class="seal">몽</span>몽강호 세이브 에디터 v1.0</h1>
+    <h1><span class="seal">몽</span>몽강호 세이브 에디터 v1.1</h1>
     <span class="app-subtitle">Save.sav 무손실 바이너리 편집기 · 순수 한국어 도감 내장</span>
   </div>
   <div class="header-tools">
@@ -756,7 +756,7 @@
       </div>
 
       <div class="section-block">
-        <h2 class="section-title">전투·자질·무학 정통 능력치</h2>
+        <h2 class="section-title">전투·1차 속성·무학 정통 능력치</h2>
         <div id="role-attrs-box" class="field-grid"></div>
       </div>
     </div>
@@ -808,7 +808,7 @@
                 <th scope="col">번호</th>
                 <th scope="col">무학 이름</th>
                 <th scope="col">경험치</th>
-                <th scope="col">등급</th>
+                <th scope="col">레벨</th>
                 <th scope="col">관리</th>
               </tr>
             </thead>
@@ -904,7 +904,7 @@
     <input type="search" id="catalog-search-input" placeholder="이름 또는 번호 검색" autocomplete="off" autofocus aria-label="도감 검색어">
     <select id="catalog-filter-select" aria-label="도감 분류 선택"></select>
     <span id="catalog-qty-wrap" class="toolbar-row">
-      <label for="catalog-qty-input">수량·등급</label>
+      <label for="catalog-qty-input">수량·레벨</label>
       <input type="number" id="catalog-qty-input" value="1" min="1" step="1">
     </span>
   </div>

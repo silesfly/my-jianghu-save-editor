@@ -22,11 +22,18 @@ REA_DIR = Path(
     )
 )
 
-KO_PATCH = REA_DIR / "ko_patch"
+KO_PATCH = Path(
+    os.environ.get(
+        "MYJH_KO_PATCH_DIR",
+        str(REA_DIR / "ko_patch_v1_0" / "DreamRivakes_Data" / "StreamingAssets" / "LuaProject"),
+    )
+)
 VANILLA = REA_DIR / "vanilla_lua"
 
 KO_LANG_DIR = KO_PATCH / "data" / "language"
-ITEM_FILE = KO_PATCH / "data" / "item.lua.txt"
+_ITEM_UPPER = KO_PATCH / "data" / "Item.lua.txt"
+_ITEM_LOWER = KO_PATCH / "data" / "item.lua.txt"
+ITEM_FILE = _ITEM_UPPER if _ITEM_UPPER.exists() else _ITEM_LOWER
 MARTIAL_FILE = VANILLA / "Martial.lua"
 GIFT_FILE = VANILLA / "Gift.lua"
 ROLE_FILE = VANILLA / "Role.lua"
@@ -67,6 +74,8 @@ def clean_name(name) -> str | None:
     s = str(name)
     if not s:
         return None
+    # Strip Lua template placeholders (e.g. {发布角色(Language)[Role.NameID]}) before CJK check.
+    s = re.sub(r"\{[^}]*\}", "", s)
     for pat in MARKUP_PATTERNS:
         s = pat.sub("", s)
     s = CJK_RE.sub("", s)
@@ -261,11 +270,11 @@ def enum_suffix(value) -> str:
 
 
 RANK_MAP = {
-    "RT_White": "백색(일반)",
-    "RT_Green": "녹색(정량)",
-    "RT_Blue": "청색(우수)",
-    "RT_Purple": "자색(상승)",
-    "RT_Orange": "주황(극품)",
+    "RT_White": "백색",
+    "RT_Green": "녹색",
+    "RT_Blue": "청색",
+    "RT_Purple": "자색",
+    "RT_Orange": "주황",
     "RT_Golden": "금색",
     "RT_Gold": "금색",
     "RT_DarkGolden": "암금",
@@ -277,11 +286,22 @@ RANK_MAP = {
 
 def map_rank(value) -> str:
     suffix = enum_suffix(value)
-    return RANK_MAP.get(suffix, "일반")
+    return RANK_MAP.get(suffix, "백색")
 
 
 ITEM_TYPE_RULES: list[tuple[tuple[str, ...], str]] = [
+    (("IncompleteBook",), "잔장"),
+    (("HeavenBook",), "천서"),
+    (("SecretBook", "MartialBook", "Book"), "비급"),
+    (("TreasureMap",), "보물지도"),
+    (("Material", "Ore", "Herb", "Wood", "ClothMat", "Forge"), "재료"),
     (("Pill", "Medicinal"), "단약"),
+    (("HiddenWeapon",), "암기"),
+    (("Leechcraft",), "의술"),
+    (("Formula",), "제조법"),
+    (("Copper", "Gold", "Silve", "Money"), "화폐"),
+    (("RolePieces",), "캐릭터 카드"),
+    (("PetPieces",), "영물 카드"),
     (
         (
             "Weapon",
@@ -293,24 +313,20 @@ ITEM_TYPE_RULES: list[tuple[tuple[str, ...], str]] = [
             "Rod",
             "Needle",
             "Fan",
+            "Whip",
+            "Cane",
         ),
         "무기",
     ),
-    (("Armor", "Cloth", "Clothes", "Hat", "Shoe", "Shoes"), "방어구"),
+    (("Armor", "Cloth", "Clothes", "Hat", "Shoe", "Shoes", "Wing", "Mounts"), "방어구"),
     (
         ("Ornament", "Jewelry", "Ring", "Necklace", "Pendant"),
         "장신구",
     ),
-    (
-        ("Book", "SecretBook", "MartialBook", "IncompleteBook"),
-        "비급",
-    ),
-    (("Food", "Dish", "Wine", "Drink", "Tea"), "음식"),
-    (
-        ("Material", "Ore", "Herb", "Wood", "ClothMat", "Forge"),
-        "재료",
-    ),
+    (("Dish",), "요리"),
+    (("Food", "Wine", "Drink", "Tea"), "식량"),
     (("Task", "Quest"), "임무"),
+    (("Goods",), "상품"),
     (("Box", "Gift", "Pack", "Treasure"), "보물상자"),
 ]
 
