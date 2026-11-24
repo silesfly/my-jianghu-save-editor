@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""몽강호 세이브 에디터 v1.1 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
+"""몽강호 세이브 에디터 v1.1.1 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
 
 from __future__ import annotations
 
@@ -386,6 +386,47 @@ class SaveDoc:
                 return
         raise ValidationError(f"물품 #{item_id}을(를) 찾을 수 없습니다.")
 
+    def find_storage_overflows(self, limit_map: dict[int, int] | None = None) -> list[dict]:
+        lmap = load_item_limit_map() if limit_map is None else limit_map
+        groups: dict[int, dict] = {}
+        for idx, rec in self.records(T23):
+            if _u32(rec, 0x14) != 0:
+                continue
+            base_id = _u32(rec, 0x18)
+            count = _u32(rec, 0x1C)
+            grp = groups.setdefault(
+                base_id,
+                {"baseId": base_id, "limitNum": lmap.get(base_id, 9900), "total": 0, "recordIds": []},
+            )
+            grp["total"] += count
+            grp["recordIds"].append(_u32(rec, 0x10))
+        return [g for g in groups.values() if g["total"] > g["limitNum"]]
+
+    def fix_storage_overflows(self, limit_map: dict[int, int] | None = None) -> dict:
+        lmap = load_item_limit_map() if limit_map is None else limit_map
+        overflows = self.find_storage_overflows(lmap)
+        details: list[dict] = []
+        removed = 0
+        for ov in overflows:
+            base_id = ov["baseId"]
+            remain = ov["limitNum"]
+            del_indices: list[int] = []
+            for idx, rec in self.records(T23):
+                if _u32(rec, 0x14) != 0 or _u32(rec, 0x18) != base_id:
+                    continue
+                count = _u32(rec, 0x1C)
+                keep = min(count, remain)
+                remain -= keep
+                if keep <= 0:
+                    del_indices.append(idx)
+                elif keep != count:
+                    _put_u32(rec, 0x1C, keep)
+            for idx in sorted(del_indices, reverse=True):
+                self.remove_record(T23, idx)
+            removed += len(del_indices)
+            details.append({"baseId": base_id, "totalBefore": ov["total"], "totalAfter": ov["limitNum"], "removed": len(del_indices)})
+        return {"fixedItems": len(details), "removedRecords": removed, "details": details}
+
     def add_martial(self, base_id: int, level: int = 1, role_id: int | None = None) -> int:
         if base_id < 1 or not 1 <= level <= 30:
             raise ValidationError("무학 번호 또는 레벨(1~30)이 올바르지 않습니다.")
@@ -522,6 +563,7 @@ class SaveDoc:
             "achievePoint": self.achieve_point,
             "currencies": {k: self.get_currency(k) for k in CURRENCY_KEYS},
             "itemCount": self.record_count(T23),
+            "storageOverflowCount": len(self.find_storage_overflows()),
             "martialCount": self.record_count(T25),
             "giftCount": self.record_count(T31),
             "npcCount": self.record_count(T28),
@@ -845,13 +887,37 @@ def save_with_backup(path: os.PathLike[str] | str, data_bytes: bytes, expected_s
     }
 
 
+def load_item_limit_map() -> dict[int, int]:
+    """내장 도감(src/catalog-data.js)에서 물품별 창고 상한(limitNum)을 불러온다."""
+    out: dict[int, int] = {}
+    for base in (Path(__file__).resolve().parent, Path.cwd().resolve()):
+        c = base / "src" / "catalog-data.js"
+        if not c.is_file():
+            continue
+        try:
+            text = c.read_text(encoding="utf-8")
+            marker = text.find("return {")
+            if marker < 0:
+                continue
+            payload, _ = json.JSONDecoder().raw_decode(text, marker + len("return "))
+            for entry in payload.get("items", []):
+                if isinstance(entry, dict) and isinstance(entry.get("id"), int):
+                    lim = entry.get("limitNum")
+                    if isinstance(lim, int) and lim > 0:
+                        out[entry["id"]] = lim
+            return out
+        except (OSError, ValueError, TypeError):
+            continue
+    return out
+
+
 def _find_html_path(explicit_html: str | None = None) -> Path:
     if explicit_html:
         p = Path(explicit_html).expanduser().resolve()
         if p.is_file():
             return p
         raise MyjhError(f"지정한 HTML 파일을 찾을 수 없습니다: {p}")
-    rel = Path("dist") / "MyJianghuSaveEditor-v1.1.html"
+    rel = Path("dist") / "MyJianghuSaveEditor-v1.1.1.html"
     for base in (Path(__file__).resolve().parent, Path.cwd().resolve()):
         c = base / rel
         if c.is_file():
@@ -1053,6 +1119,13 @@ def run_self_test() -> int:
     for pid in PRESET_IDS:
         doc.apply_preset(pid)
     doc.add_item(1005, 50)
+    doc.add_item(1001, 6000, owner=0)
+    doc.add_item(1001, 5000, owner=0)
+    if len(doc.find_storage_overflows({1001: 9999})) != 1:
+        raise MyjhError("창고 상한 초과 탐지 실패")
+    fix_res = doc.fix_storage_overflows({1001: 9999})
+    if fix_res["fixedItems"] != 1 or doc.find_storage_overflows({1001: 9999}):
+        raise MyjhError("창고 상한 초과 정리 실패")
     doc.add_martial(12215, 10)
     doc.add_gift(409)
     mutated = doc.serialize()
@@ -1128,6 +1201,7 @@ def main(argv: list[str] | None = None) -> int:
     p_edit.add_argument("--set-item-count", nargs=2, action="append", metavar=("ID", "CNT"))
     p_edit.add_argument("--add-item", nargs=2, action="append", metavar=("BASE", "CNT"))
     p_edit.add_argument("--remove-item", type=int, action="append", default=None)
+    p_edit.add_argument("--fix-storage-overflow", action="store_true", help="계정 창고(소유 0) 상한 초과 물품을 안전 상한으로 정리")
     p_edit.add_argument("--add-martial", nargs=2, action="append", metavar=("BASE", "LV"))
     p_edit.add_argument("--remove-martial", type=int, action="append", default=None)
     p_edit.add_argument("--add-gift", type=int, action="append", default=None)
@@ -1211,6 +1285,8 @@ def main(argv: list[str] | None = None) -> int:
                 doc.add_item(int(base), int(cnt))
             for iid in (args.remove_item or []):
                 doc.remove_item(iid)
+            if args.fix_storage_overflow:
+                doc.fix_storage_overflows()
             for base, lv in (args.add_martial or []):
                 doc.add_martial(int(base), int(lv))
             for mid in (args.remove_martial or []):

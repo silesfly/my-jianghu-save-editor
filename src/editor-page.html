@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>몽강호 세이브 에디터 v1.1</title>
+<title>몽강호 세이브 에디터 v1.1.1</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -994,8 +994,8 @@ html[data-hyup-skin="m1"] :focus-visible {
 
 <header class="app-header">
   <div class="app-title">
-    <h1><span class="seal">몽</span>몽강호 세이브 에디터 v1.1</h1>
-    <span class="app-subtitle">Save.sav 무손실 바이너리 편집기 · 순수 한국어 도감 내장</span>
+    <h1><span class="seal">몽</span>몽강호 세이브 에디터 v1.1.1</h1>
+    <span class="app-subtitle">Save.sav 무손실 바이너리 편집기 · v1.3.4(빌드 26893004) 호환 · 순수 한국어 도감 내장</span>
   </div>
   <div class="header-tools">
     <span id="status-badge" class="badge">대기 중</span>
@@ -1089,8 +1089,10 @@ html[data-hyup-skin="m1"] :focus-visible {
         <label for="item-search">물품 검색</label>
         <input type="search" id="item-search" placeholder="이름 또는 번호 검색" autocomplete="off">
         <button type="button" id="btn-add-item" class="btn primary">물품 추가</button>
+        <button type="button" id="btn-fix-storage" class="btn hidden">창고 상한 초과 정리</button>
         <span id="items-count" class="count-label">0개</span>
       </div>
+      <div id="storage-overflow-banner" class="hint hidden" role="status" aria-live="polite"></div>
 
       <div tabindex="0" role="region" aria-label="보유 물품 목록" class="table-wrapper">
         <table>

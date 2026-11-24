@@ -378,6 +378,7 @@ def load_items(ko_lang: dict[int, str]) -> list[dict]:
 
     default_rank = "RT_White"
     default_max = 999
+    default_limit = 9900
     default_body = locate_table(text, "ItemDefault")
     if default_body:
         raw_rank = parse_field(default_body, "Rank")
@@ -386,6 +387,9 @@ def load_items(ko_lang: dict[int, str]) -> list[dict]:
         raw_max = parse_field(default_body, "MaxNum")
         if isinstance(raw_max, int) and raw_max > 0:
             default_max = raw_max
+        raw_limit = parse_field(default_body, "LimitNum")
+        if isinstance(raw_limit, int) and raw_limit > 0:
+            default_limit = raw_limit
 
     item_table = locate_table(text, "Item")
     if not item_table:
@@ -413,6 +417,9 @@ def load_items(ko_lang: dict[int, str]) -> list[dict]:
         max_num = parse_field(body, "MaxNum")
         if not isinstance(max_num, int) or max_num <= 0:
             max_num = default_max
+        limit_num = parse_field(body, "LimitNum")
+        if not isinstance(limit_num, int) or limit_num <= 0:
+            limit_num = default_limit
 
         record = {
             "id": int(base_id),
@@ -420,6 +427,7 @@ def load_items(ko_lang: dict[int, str]) -> list[dict]:
             "rank": map_rank(rank_raw),
             "type": map_item_type(item_type_raw),
             "maxNum": int(max_num),
+            "limitNum": int(limit_num),
         }
         if record["id"] in seen_ids:
             continue
@@ -629,6 +637,11 @@ def main() -> int:
     roles = load_roles(ko_lang)
 
     data = {
+        "meta": {
+            "gameVersion": "v1.3.4",
+            "steamBuildId": "26893004",
+            "krPatch": "v1.0",
+        },
         "items": items,
         "martials": martials,
         "gifts": gifts,

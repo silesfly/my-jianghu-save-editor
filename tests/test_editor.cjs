@@ -53,7 +53,7 @@ test('Language & Hygiene Audit', () => {
     'src/editor-core.js',
     'src/editor-ui.js',
     'src/editor-page.html',
-    'dist/MyJianghuSaveEditor-v1.1.html'
+    'dist/MyJianghuSaveEditor-v1.1.1.html'
   ]) {
     const text = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     assert.ok(!HANZI_RE.test(text), `${rel}: contains Hanzi`);
@@ -61,7 +61,7 @@ test('Language & Hygiene Audit', () => {
     assert.ok(!text.includes('실험적'), `${rel}: contains forbidden word`);
   }
 
-  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.1.html');
+  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.1.1.html');
   const distText = fs.readFileSync(distPath, 'utf8');
   const distSize = fs.statSync(distPath).size;
 
@@ -74,6 +74,11 @@ test('Language & Hygiene Audit', () => {
 
 test('Catalog Completeness', () => {
   assert.ok(Array.isArray(Catalog.items) && Catalog.items.length >= 3800);
+  assert.strictEqual(Catalog.meta && Catalog.meta.gameVersion, 'v1.3.4');
+  assert.strictEqual(Catalog.meta && Catalog.meta.steamBuildId, '26893004');
+  for (const it of Catalog.items) {
+    assert.ok(Number.isInteger(it.limitNum) && it.limitNum > 0, `item ${it.id} missing limitNum`);
+  }
   assert.ok(Array.isArray(Catalog.martials) && Catalog.martials.length >= 900);
   assert.ok(Array.isArray(Catalog.gifts) && Catalog.gifts.length >= 2800);
   assert.ok(Catalog.roles && Object.keys(Catalog.roles).length >= 3200);
@@ -165,6 +170,22 @@ test('All Codec & Session Mutations + Bounds Enforcement', () => {
   assert.ok(session.getModel().maxIds[Codec.ITEM_OBJ_TYPE] >= newItemId);
   session.removeItem(newItemId);
   assert.strictEqual(session.getSummary().items.find((i) => i.id === newItemId), undefined);
+
+  const st1 = session.addItem(1001, 6000, 0);
+  const st2 = session.addItem(1001, 5000, 0);
+  assert.strictEqual(session.getStorageOverflows().length, 1);
+  const stRow = session.getSummary().items.find((i) => i.id === st1);
+  assert.strictEqual(stRow.ownerLabel, '계정 창고');
+  assert.strictEqual(stRow.exceedsLimit, true);
+  const fixRes = session.fixStorageOverflows();
+  assert.strictEqual(fixRes.fixedItems, 1);
+  assert.strictEqual(session.getStorageOverflows().length, 0);
+  const stTotal = session.getSummary().items
+    .filter((i) => i.owner === 0 && i.baseId === 1001)
+    .reduce((acc, i) => acc + i.count, 0);
+  assert.strictEqual(stTotal, 9999);
+  assert.strictEqual(Codec.validate(session.toBytes()).ok, true);
+  assert.ok(st2 > st1);
 
   const overflowModel = Codec.parse(Codec.createDemoSave());
   const itemMaxRec = overflowModel.tables[Codec.MAXID_TABLE].records.find((r) => (r[0x10] | (r[0x11] << 8) | (r[0x12] << 16) | (r[0x13] << 24)) >>> 0 === Codec.ITEM_OBJ_TYPE);

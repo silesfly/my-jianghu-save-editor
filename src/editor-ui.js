@@ -480,14 +480,33 @@
   function renderItems() {
     const tbody = $('#items-tbody');
     const countLbl = $('#items-count');
+    const overflowBanner = $('#storage-overflow-banner');
+    const fixBtn = $('#btn-fix-storage');
     if (!tbody) return;
     if (!session.isLoaded()) {
       if (countLbl) countLbl.textContent = '0개';
+      if (overflowBanner) { overflowBanner.classList.add('hidden'); overflowBanner.textContent = ''; }
+      if (fixBtn) fixBtn.classList.add('hidden');
       renderEmptyRow(tbody, 5, '세이브를 열면 보유 물품이 표시됩니다.');
       return;
     }
+    const summary = session.getSummary();
+    const overflows = summary.storageOverflows || [];
+    const hasOverflow = overflows.length > 0;
+    if (overflowBanner) {
+      overflowBanner.classList.toggle('hidden', !hasOverflow);
+      if (hasOverflow) {
+        const names = overflows.slice(0, 3).map((ov) => ov.name).join(', ');
+        overflowBanner.textContent = '계정 창고 상한 초과 물품 ' + overflows.length + '종 발견'
+          + (names ? ' (' + names + (overflows.length > 3 ? ' 등' : '') + ')' : '')
+          + ' — v1.3.4 실행 시 안전 상한으로 자동 조정되며 구버전에서는 창고가 잠길 수 있습니다.';
+      } else {
+        overflowBanner.textContent = '';
+      }
+    }
+    if (fixBtn) fixBtn.classList.toggle('hidden', !hasOverflow);
     const q = (($('#item-search') || {}).value || '').trim().toLowerCase();
-    const all = session.getSummary().items;
+    const all = summary.items;
     const rows = all.filter((it) => !q || it.name.toLowerCase().includes(q) || String(it.baseId).includes(q));
     if (countLbl) countLbl.textContent = rows.length + ' / ' + all.length + '개';
     if (!rows.length) {
@@ -497,6 +516,7 @@
     clear(tbody);
     rows.forEach((it) => {
       const tr = el('tr');
+      if (it.exceedsLimit) tr.classList.add('row-overflow');
       tr.appendChild(el('td', null, '#' + it.id + ' (' + it.baseId + ')'));
       tr.appendChild(el('td', null, it.name + ' [' + it.rank + ']'));
       const tdQty = el('td');
@@ -505,13 +525,15 @@
       inp.min = '1';
       inp.max = '999999';
       inp.value = String(it.count);
+      inp.title = '현재 ' + it.count + '개 · 중첩 ' + it.maxNum + ' · 창고 상한 ' + it.limitNum + (it.exceedsLimit ? ' (상한 초과)' : '');
       inp.addEventListener('change', () => safeRun(() => {
         session.setItemCount(it.id, num(inp.value, 1));
+        renderItems();
         rerenderStatusAndSummary();
       }, () => { inp.value = String(it.count); }));
       tdQty.appendChild(inp);
       tr.appendChild(tdQty);
-      tr.appendChild(el('td', null, it.type + ' (소유 #' + it.owner + ')'));
+      tr.appendChild(el('td', null, it.type + ' · ' + it.ownerLabel + ' (상한 ' + it.limitNum + ')' + (it.exceedsLimit ? ' [상한 초과]' : '')));
       const tdOp = el('td');
       const rm = el('button', 'btn sm danger', '삭제');
       rm.type = 'button';
@@ -930,6 +952,14 @@
 
     const addItemBtn = $('#btn-add-item');
     if (addItemBtn) addItemBtn.addEventListener('click', () => openCatalogDialog('items'));
+    const fixStorageBtn = $('#btn-fix-storage');
+    if (fixStorageBtn) fixStorageBtn.addEventListener('click', () => safeRun(() => {
+      const res = session.fixStorageOverflows();
+      rerenderAll();
+      toast(res.fixedItems > 0
+        ? '계정 창고 상한 초과 물품 ' + res.fixedItems + '종을 안전 상한으로 정리했습니다.'
+        : '정리할 상한 초과 창고 물품이 없습니다.', 'ok');
+    }));
     const addMartialBtn = $('#btn-add-martial');
     if (addMartialBtn) addMartialBtn.addEventListener('click', () => openCatalogDialog('martials'));
     const addGiftBtn = $('#btn-add-gift');

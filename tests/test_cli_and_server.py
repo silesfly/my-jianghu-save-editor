@@ -105,6 +105,30 @@ class TestCliAndServer(unittest.TestCase):
         self.assertEqual(after_doc.coin, 777777)
         self.assertGreaterEqual(after_doc.get_currency("silver"), 999999)
 
+    def test_cli_fix_storage_overflow(self) -> None:
+        save_path = os.path.join(self.td, "OverflowSave.sav")
+        doc = ed.SaveDoc.parse(ed.create_demo_save())
+        doc.add_item(1001, 6000, owner=0)
+        doc.add_item(1001, 5000, owner=0)
+        Path(save_path).write_bytes(doc.serialize())
+
+        rc, out = self._run_cli(["info", save_path])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(json.loads(out)["summary"]["storageOverflowCount"], 1)
+
+        rc, out = self._run_cli(["edit", save_path, "--fix-storage-overflow"])
+        self.assertEqual(rc, 0, out)
+
+        fixed = ed.SaveDoc.parse(Path(save_path).read_bytes())
+        fixed.validate()
+        self.assertEqual(fixed.find_storage_overflows(), [])
+        total = sum(
+            ed._u32(rec, 0x1C)
+            for _, rec in fixed.records(ed.T23)
+            if ed._u32(rec, 0x14) == 0 and ed._u32(rec, 0x18) == 1001
+        )
+        self.assertEqual(total, 9999)
+
     def test_game_running_and_sha_mismatch_and_symlink_guards(self) -> None:
         p = os.path.join(self.td, "Save.sav")
         self._run_cli(["demo", "--out", p])

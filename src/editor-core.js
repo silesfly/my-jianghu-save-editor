@@ -33,14 +33,19 @@
   function getItemMeta(baseId) {
     var raw = itemMap[String(baseId)];
     if (!raw) {
-      return { id: baseId, name: '미등록 물품 #' + baseId, rank: '일반', type: '기타', maxNum: 9999 };
+      return { id: baseId, name: '미등록 물품 #' + baseId, rank: '일반', type: '기타', maxNum: 9999, limitNum: 9900 };
     }
+    var maxNum = raw.maxNum == null ? 9999 : Number(raw.maxNum);
+    if (!isFinite(maxNum) || maxNum <= 0) maxNum = 9999;
+    var limitNum = raw.limitNum == null ? 9900 : Number(raw.limitNum);
+    if (!isFinite(limitNum) || limitNum <= 0) limitNum = 9900;
     return {
       id: raw.id == null ? baseId : raw.id,
       name: raw.name == null ? '물품 #' + baseId : String(raw.name),
       rank: raw.rank == null ? '일반' : String(raw.rank),
       type: raw.type == null ? '기타' : String(raw.type),
-      maxNum: raw.maxNum == null ? 9999 : Number(raw.maxNum) || 9999
+      maxNum: maxNum,
+      limitNum: limitNum
     };
   }
 
@@ -130,10 +135,55 @@
     return { tableCount: nonEmpty, recordCount: records };
   }
 
+  function computeStorageOverflows(model) {
+    var list = model && Array.isArray(model.items) ? model.items : [];
+    var totals = Object.create(null);
+    var order = [];
+    for (var i = 0; i < list.length; i += 1) {
+      var row = list[i];
+      if (!row || Number(row.owner) !== 0) continue;
+      var key = String(row.baseId);
+      if (!totals[key]) {
+        totals[key] = { baseId: row.baseId, total: 0, recordIds: [] };
+        order.push(key);
+      }
+      var cnt = Number(row.count);
+      if (!isFinite(cnt) || cnt < 0) cnt = 0;
+      totals[key].total += cnt;
+      totals[key].recordIds.push(row.id);
+    }
+    var out = [];
+    for (var j = 0; j < order.length; j += 1) {
+      var agg = totals[order[j]];
+      var meta = getItemMeta(agg.baseId);
+      if (agg.total > meta.limitNum) {
+        out.push({
+          baseId: agg.baseId,
+          name: meta.name,
+          total: agg.total,
+          limitNum: meta.limitNum,
+          recordIds: agg.recordIds
+        });
+      }
+    }
+    return out;
+  }
+
   function enrichItems(model) {
     var list = model && Array.isArray(model.items) ? model.items : [];
+    var overflows = computeStorageOverflows(model);
+    var overflowMap = Object.create(null);
+    for (var i = 0; i < overflows.length; i += 1) {
+      overflowMap[String(overflows[i].baseId)] = true;
+    }
+    var mainId = model && model.mainRoleId ? Number(model.mainRoleId) : 0;
     return list.map(function (row) {
       var meta = getItemMeta(row.baseId);
+      var ownerNum = Number(row.owner) || 0;
+      var isStorage = ownerNum === 0;
+      var ownerLabel = isStorage
+        ? '계정 창고'
+        : (mainId > 0 && ownerNum === mainId ? '주인공 배낭' : '소유 #' + ownerNum);
       return {
         id: row.id,
         baseId: row.baseId,
@@ -141,8 +191,12 @@
         rank: meta.rank,
         type: meta.type,
         maxNum: meta.maxNum,
+        limitNum: meta.limitNum,
         count: row.count,
-        owner: row.owner
+        owner: row.owner,
+        isStorage: isStorage,
+        ownerLabel: ownerLabel,
+        exceedsLimit: isStorage && overflowMap[String(row.baseId)] === true
       };
     });
   }
@@ -262,6 +316,7 @@
         mainRole: m.mainRole,
         roles: m.roles,
         items: enrichItems(m),
+        storageOverflows: computeStorageOverflows(m),
         martials: enrichMartials(m),
         gifts: enrichGifts(m),
         npcs: enrichNpcs(m)
@@ -327,6 +382,55 @@
       MyjhCodec.removeItem(requireModel(), Number(itemId));
       dirty = true;
       return model;
+    };
+
+    session.getStorageOverflows = function () {
+      return computeStorageOverflows(requireModel());
+    };
+
+    session.fixStorageOverflows = function () {
+      var m = requireModel();
+      var overflows = computeStorageOverflows(m);
+      var fixedItems = 0;
+      var removedRecords = 0;
+      var details = [];
+      var changed = false;
+      for (var i = 0; i < overflows.length; i += 1) {
+        var ov = overflows[i];
+        var rows = m.items.filter(function (row) {
+          return Number(row.owner) === 0 && Number(row.baseId) === Number(ov.baseId);
+        }).map(function (row) {
+          return { id: row.id, count: Number(row.count) || 0 };
+        });
+        var remain = ov.limitNum;
+        var itemChanged = false;
+        for (var j = 0; j < rows.length; j += 1) {
+          var row = rows[j];
+          var keep = Math.min(row.count, remain);
+          remain -= keep;
+          if (keep === row.count) continue;
+          changed = true;
+          itemChanged = true;
+          if (keep <= 0) {
+            MyjhCodec.removeItem(m, row.id);
+            removedRecords += 1;
+          } else {
+            MyjhCodec.setItemCount(m, row.id, keep);
+          }
+        }
+        if (itemChanged) {
+          fixedItems += 1;
+          details.push({
+            baseId: ov.baseId,
+            name: ov.name,
+            totalBefore: ov.total,
+            totalAfter: ov.limitNum,
+            limitNum: ov.limitNum
+          });
+        }
+      }
+      if (changed) dirty = true;
+      return { fixedItems: fixedItems, removedRecords: removedRecords, details: details };
     };
 
     session.setMartial = function (martialId, patch) {
