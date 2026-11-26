@@ -3,7 +3,7 @@
 """몽강호 세이브 에디터 단일 HTML 번들 빌더.
 
 src/editor-page.html 내 <script src="..."> 태그를 실제 JS 파일 내용으로
-인라인 병합하여 dist/MyJianghuSaveEditor-v1.1.1.html 을 원자적으로 생성한다.
+인라인 병합하여 dist/MyJianghuSaveEditor-v1.1.2.html 을 원자적으로 생성한다.
 
 사용법:
     python3 build.py
@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 SRC_HTML = ROOT / "src" / "editor-page.html"
 DIST_DIR = ROOT / "dist"
-DIST_HTML = DIST_DIR / "MyJianghuSaveEditor-v1.1.1.html"
+DIST_HTML = DIST_DIR / "MyJianghuSaveEditor-v1.1.2.html"
 
 JS_FILES = [
     "myjh-codec.js",

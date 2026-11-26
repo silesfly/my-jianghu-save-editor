@@ -638,8 +638,8 @@ def main() -> int:
 
     data = {
         "meta": {
-            "gameVersion": "v1.3.4",
-            "steamBuildId": "26893004",
+            "gameVersion": "v1.3.5",
+            "steamBuildId": "26914657",
             "krPatch": "v1.0",
         },
         "items": items,

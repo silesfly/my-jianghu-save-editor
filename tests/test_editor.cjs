@@ -53,7 +53,7 @@ test('Language & Hygiene Audit', () => {
     'src/editor-core.js',
     'src/editor-ui.js',
     'src/editor-page.html',
-    'dist/MyJianghuSaveEditor-v1.1.1.html'
+    'dist/MyJianghuSaveEditor-v1.1.2.html'
   ]) {
     const text = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     assert.ok(!HANZI_RE.test(text), `${rel}: contains Hanzi`);
@@ -61,7 +61,7 @@ test('Language & Hygiene Audit', () => {
     assert.ok(!text.includes('실험적'), `${rel}: contains forbidden word`);
   }
 
-  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.1.1.html');
+  const distPath = path.join(DIST, 'MyJianghuSaveEditor-v1.1.2.html');
   const distText = fs.readFileSync(distPath, 'utf8');
   const distSize = fs.statSync(distPath).size;
 
@@ -74,8 +74,8 @@ test('Language & Hygiene Audit', () => {
 
 test('Catalog Completeness', () => {
   assert.ok(Array.isArray(Catalog.items) && Catalog.items.length >= 3800);
-  assert.strictEqual(Catalog.meta && Catalog.meta.gameVersion, 'v1.3.4');
-  assert.strictEqual(Catalog.meta && Catalog.meta.steamBuildId, '26893004');
+  assert.strictEqual(Catalog.meta && Catalog.meta.gameVersion, 'v1.3.5');
+  assert.strictEqual(Catalog.meta && Catalog.meta.steamBuildId, '26914657');
   for (const it of Catalog.items) {
     assert.ok(Number.isInteger(it.limitNum) && it.limitNum > 0, `item ${it.id} missing limitNum`);
   }

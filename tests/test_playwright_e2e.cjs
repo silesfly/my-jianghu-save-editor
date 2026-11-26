@@ -250,7 +250,7 @@ function resolveChromiumExecutable(chromium) {
 (async () => {
   const { chromium } = resolvePlaywright();
   const repoRoot = path.resolve(__dirname, '..');
-  const distPath = path.join(repoRoot, 'dist', 'MyJianghuSaveEditor-v1.1.1.html');
+  const distPath = path.join(repoRoot, 'dist', 'MyJianghuSaveEditor-v1.1.2.html');
   assert.ok(fs.existsSync(distPath), `dist file missing: ${distPath}`);
 
   const executablePath = resolveChromiumExecutable(chromium);

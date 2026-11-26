@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""몽강호 세이브 에디터 v1.1.1 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
+"""몽강호 세이브 에디터 v1.1.2 — Python CLI 및 로컬 루프백 서버 (표준 라이브러리 전용)."""
 
 from __future__ import annotations
 
@@ -917,7 +917,7 @@ def _find_html_path(explicit_html: str | None = None) -> Path:
         if p.is_file():
             return p
         raise MyjhError(f"지정한 HTML 파일을 찾을 수 없습니다: {p}")
-    rel = Path("dist") / "MyJianghuSaveEditor-v1.1.1.html"
+    rel = Path("dist") / "MyJianghuSaveEditor-v1.1.2.html"
     for base in (Path(__file__).resolve().parent, Path.cwd().resolve()):
         c = base / rel
         if c.is_file():

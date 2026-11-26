@@ -499,7 +499,7 @@
         const names = overflows.slice(0, 3).map((ov) => ov.name).join(', ');
         overflowBanner.textContent = '계정 창고 상한 초과 물품 ' + overflows.length + '종 발견'
           + (names ? ' (' + names + (overflows.length > 3 ? ' 등' : '') + ')' : '')
-          + ' — v1.3.4 실행 시 안전 상한으로 자동 조정되며 구버전에서는 창고가 잠길 수 있습니다.';
+          + ' — v1.3.4 이상 실행 시 안전 상한으로 자동 조정되며 구버전에서는 창고가 잠길 수 있습니다.';
       } else {
         overflowBanner.textContent = '';
       }
